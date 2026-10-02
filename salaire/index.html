@@ -1,0 +1,218 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Salaire brut en net | nota.</title>
+<meta name="description" content="Convertis ton salaire brut en net (ou net en brut) : horaire, mensuel, annuel. Non-cadre, cadre, fonction publique, temps partiel et prélèvement à la source.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/nota.css">
+<style>
+  :root { --accent: #a46a3f; }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --accent: #d89a68; } }
+  :root[data-theme="dark"] { --accent: #d89a68; }
+  .group { display: flex; flex-direction: column; gap: 8px; margin-bottom: 18px; }
+  .stats .stat.hl { background: var(--ink); color: var(--sand-0); }
+  .stats .stat.hl .lbl { color: var(--sand-2); }
+</style>
+</head>
+<body>
+  <div class="bg"></div>
+  <canvas id="scene" aria-hidden="true"></canvas>
+  <div class="mist"></div>
+  <div class="grain"></div>
+  <div class="topfade"></div>
+
+  <div class="hud tl"><a href="../"><div class="logo">nota.</div><div>Salaire / v.01</div></a></div>
+  <div class="hud tr"><div><span class="dot"></span>En ligne</div><div id="hud-mode">Brut → net</div></div>
+  <div class="hud bl"><div id="hud-coords">X 0.00 · Y 0.00</div><div>Particules : <span id="hud-count">0</span></div></div>
+  <div class="hud br"><div>Scroll pour explorer</div><div id="hud-pct">000%</div></div>
+
+  <main>
+    <section class="hero">
+      <div class="kicker reveal">Horaire · Mensuel · Annuel</div>
+      <h1 class="reveal d1">Ton brut,<br><em>en vrai net.</em></h1>
+      <p class="reveal d2">Ce que tu touches vraiment sur ton compte, selon ton statut, ton temps de travail et ton taux d'impôt.</p>
+      <a class="cta reveal d3" href="#outil">Convertir mon salaire →</a>
+      <div class="scroll-hint">SCROLL</div>
+    </section>
+
+    <section id="outil">
+      <div class="wrap tool">
+        <div class="tool-head">
+          <div class="kicker reveal">Convertisseur</div>
+          <h2 class="reveal d1">Combien tu <em>touches ?</em></h2>
+        </div>
+
+        <div class="panel reveal d1">
+          <div class="tabs" role="tablist">
+            <button type="button" data-dir="b2n" class="on">Brut → net</button>
+            <button type="button" data-dir="n2b">Net → brut</button>
+          </div>
+          <div class="fields">
+            <div class="field"><label for="amount" id="lamount">Salaire brut (€)</label><input id="amount" class="num" inputmode="decimal" value="2200" autocomplete="off"></div>
+            <div class="field"><label for="period">Période</label>
+              <select id="period"><option value="h">Par heure</option><option value="m" selected>Par mois</option><option value="y">Par an</option></select>
+            </div>
+            <div class="field full"><span class="lbl">Statut</span>
+              <div class="chips" id="status">
+                <button type="button" class="chip on" data-rate="0.22">Non-cadre · 22 %</button>
+                <button type="button" class="chip" data-rate="0.25">Cadre · 25 %</button>
+                <button type="button" class="chip" data-rate="0.15">Fonction publique · 15 %</button>
+              </div>
+            </div>
+            <div class="field"><label for="time">Temps de travail (%)</label><input id="time" class="num" inputmode="decimal" value="100" autocomplete="off"></div>
+            <div class="field"><label for="months">Mois de salaire par an</label>
+              <select id="months"><option value="12" selected>12 mois</option><option value="13">13 mois</option></select>
+            </div>
+            <div class="field full"><label for="tax">Taux de prélèvement à la source (%)</label><input id="tax" class="num" inputmode="decimal" value="0" autocomplete="off"></div>
+          </div>
+          <p class="hint">Estimation basée sur les taux moyens de cotisations salariales. Ta fiche de paie peut varier de quelques euros (mutuelle, tickets resto, heures sup). Base temps plein : 35 h, soit 151,67 h par mois.</p>
+        </div>
+
+        <div class="panel result reveal d2" aria-live="polite">
+          <div class="lbl" id="biglbl">Net mensuel avant impôt</div>
+          <div class="big" id="out">--</div>
+          <div class="sub" id="sentence"></div>
+          <div class="stats">
+            <div class="stat"><span class="lbl">Brut mensuel</span><b id="bm">--</b></div>
+            <div class="stat"><span class="lbl">Net mensuel</span><b id="nm">--</b></div>
+            <div class="stat"><span class="lbl">Net horaire</span><b id="nh">--</b></div>
+            <div class="stat"><span class="lbl">Brut annuel</span><b id="ba">--</b></div>
+            <div class="stat"><span class="lbl">Net annuel</span><b id="na">--</b></div>
+            <div class="stat hl"><span class="lbl">Net après impôt / mois</span><b id="ni">--</b></div>
+          </div>
+          <div class="ad" data-ad>Espace publicitaire</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="auto">
+      <div class="wrap prose">
+        <div class="panel reveal">
+          <h2>Du brut au net, <em>comment ça marche</em></h2>
+          <p>Le salaire brut est ce que ton employeur te doit avant les cotisations sociales. Le net est ce qui reste une fois ces cotisations retirées : retraite, assurance chômage, CSG, CRDS. Ensuite, l'impôt sur le revenu est prélevé à la source, directement sur ta paie.</p>
+          <h3>Les taux utilisés</h3>
+          <ul>
+            <li><strong>Non-cadre</strong> dans le privé : environ 22 % de cotisations. 2 000 € brut donnent environ 1 560 € net.</li>
+            <li><strong>Cadre</strong> : environ 25 %, à cause de la retraite complémentaire des cadres. 3 000 € brut donnent environ 2 250 € net.</li>
+            <li><strong>Fonction publique</strong> : environ 15 %.</li>
+          </ul>
+          <h3>Net avant ou après impôt ?</h3>
+          <p>Le net avant impôt figure sur ta fiche de paie. Le montant versé sur ton compte est le net après impôt : c'est le net avant impôt moins ton taux de prélèvement à la source. Tu trouves ce taux dans ton espace sur impots.gouv.fr ou sur ta fiche de paie. Si tu es étudiant ou que tu gagnes peu, il est souvent de 0 %.</p>
+          <h3>Convertir un salaire horaire</h3>
+          <p>Un temps plein à 35 h par semaine fait 151,67 heures par mois (35 × 52 ÷ 12). Pour passer de l'horaire au mensuel, on multiplie donc par 151,67. À mi-temps, on multiplie par la moitié.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="auto">
+      <div class="wrap">
+        <div class="kicker reveal">Autres outils</div>
+        <div class="others reveal d1">
+          <a class="tile" href="../moyenne/"><div class="n">École</div><h3>Moyenne</h3><p>Trimestre, brevet et bac, avec mention et points manquants.</p></a>
+          <a class="tile" href="../pourcentage/"><div class="n">Calcul</div><h3>Pourcentage</h3><p>Remises, hausses, évolutions et parts.</p></a>
+          <a class="tile here" href="../salaire/"><div class="n">Travail</div><h3>Salaire brut / net</h3><p>Convertis ton salaire horaire, mensuel ou annuel.</p></a>
+          <a class="tile" href="../pseudo/"><div class="n">Jeux</div><h3>Pseudo</h3><p>Des pseudos uniques pour tes jeux et réseaux.</p></a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer><a href="../">nota.</a> · Estimation indicative, ne remplace pas ta fiche de paie · <a href="../confidentialite/">Confidentialité</a></footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="../assets/scene.js"></script>
+<script src="../assets/ads.js"></script>
+<script>
+const $ = s => document.querySelector(s);
+const num = v => { const n = parseFloat(String(v).replace(/\s/g, "").replace(",", ".")); return isFinite(n) ? n : NaN; };
+const eur = (n, d = 0) => n.toLocaleString("fr-FR", { minimumFractionDigits: d, maximumFractionDigits: d }) + " €";
+const HOURS_FULL = 151.67;
+
+let dir = "b2n", rate = 0.22, shown = 0, raf = 0, last = null;
+const scene = NotaScene({ shapes: [coins, bars, NotaShapes.ring] });
+NotaReveal();
+
+function compute() {
+  const amount = num($("#amount").value), time = num($("#time").value), tax = num($("#tax").value);
+  const months = +$("#months").value, period = $("#period").value;
+  const bad = { amount: isNaN(amount) || amount < 0, time: isNaN(time) || time <= 0 || time > 100, tax: isNaN(tax) || tax < 0 || tax > 60 };
+  for (const k in bad) $("#" + k).classList.toggle("bad", bad[k]);
+  if (bad.amount || bad.time || bad.tax) { $("#out").textContent = "--"; $("#sentence").textContent = "Vérifie les champs en rouge"; return; }
+
+  const hours = HOURS_FULL * time / 100;
+  // Montant mensuel saisi, dans le sens choisi
+  const monthly = period === "h" ? amount * hours : period === "y" ? amount / months : amount;
+  const brutM = dir === "b2n" ? monthly : monthly / (1 - rate);
+  const netM = brutM * (1 - rate);
+  const netAfter = netM * (1 - tax / 100);
+
+  $("#bm").textContent = eur(brutM);
+  $("#nm").textContent = eur(netM);
+  $("#nh").textContent = eur(netM / hours, 2);
+  $("#ba").textContent = eur(brutM * months);
+  $("#na").textContent = eur(netM * months);
+  $("#ni").textContent = eur(netAfter);
+
+  const big = dir === "b2n" ? netM : brutM;
+  $("#biglbl").textContent = dir === "b2n" ? "Net mensuel avant impôt" : "Brut mensuel";
+  $("#sentence").textContent = dir === "b2n"
+    ? `soit ${eur(brutM - netM)} de cotisations par mois`
+    : `pour toucher ${eur(netM)} net par mois`;
+  animate(big);
+  if (last === null || Math.abs(big - last) > 0.5) scene.pulse(0.5, Math.min(1, big / 5000));
+  last = big;
+}
+
+function animate(target) {
+  cancelAnimationFrame(raf);
+  const from = shown, t0 = performance.now();
+  const step = t => {
+    const k = Math.min(1, (t - t0) / 600), e = 1 - Math.pow(1 - k, 3);
+    shown = from + (target - from) * e;
+    $("#out").innerHTML = Math.round(shown).toLocaleString("fr-FR") + "<small> €</small>";
+    if (k < 1) raf = requestAnimationFrame(step);
+  };
+  raf = requestAnimationFrame(step);
+}
+
+document.querySelectorAll(".tabs button").forEach(b => b.onclick = () => {
+  dir = b.dataset.dir;
+  document.querySelectorAll(".tabs button").forEach(x => x.classList.toggle("on", x === b));
+  $("#lamount").textContent = dir === "b2n" ? "Salaire brut (€)" : "Salaire net (€)";
+  $("#hud-mode").textContent = dir === "b2n" ? "Brut → net" : "Net → brut";
+  compute();
+});
+document.querySelectorAll("#status .chip").forEach(c => c.onclick = () => {
+  rate = +c.dataset.rate;
+  document.querySelectorAll("#status .chip").forEach(x => x.classList.toggle("on", x === c));
+  compute();
+});
+["amount", "time", "tax"].forEach(id => $("#" + id).oninput = compute);
+["period", "months"].forEach(id => $("#" + id).onchange = compute);
+compute();
+
+/* Formes 3D : une pile de pièces, puis un graphique en barres */
+function coins(i, rnd, g) {
+  const n = 7, k = i % n, a = rnd(0, Math.PI * 2), r = 1.25, h = 0.2;
+  const cy = -1.7 + k * 0.42, cx = Math.sin(k * 1.7) * 0.12, cz = Math.cos(k * 2.3) * 0.12;
+  const face = Math.random();
+  if (face < 0.55) return [cx + Math.cos(a) * r, cy + rnd(-h, h) / 2, cz + Math.sin(a) * r]; // tranche
+  const rr = Math.sqrt(Math.random()) * r * (face < 0.8 ? 1 : 0.75);
+  return [cx + Math.cos(a) * rr, cy + h / 2, cz + Math.sin(a) * rr]; // dessus
+}
+function bars(i, rnd, g) {
+  const k = i % 3, H = [1.4, 2.4, 3.4][k], x0 = [-1.5, 0, 1.5][k], w = 0.42;
+  const f = Math.floor(Math.random() * 5);
+  let p;
+  if (f === 0) p = [rnd(-w, w), H, rnd(-w, w)];
+  else if (f < 3) p = [f === 1 ? -w : w, rnd(0, H), rnd(-w, w)];
+  else p = [rnd(-w, w), rnd(0, H), f === 3 ? -w : w];
+  return NotaShapes.spinY([x0 + p[0], p[1] - 1.7, p[2]], 0.5);
+}
+</script>
+</body>
+</html>

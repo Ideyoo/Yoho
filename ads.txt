@@ -1,0 +1,2 @@
+# Remplace la ligne ci-dessous par ton identifiant AdSense (sans le "ca-"), puis enlève le # au début.
+# google.com, pub-0000000000000000, DIRECT, f08c47fec0942fa0

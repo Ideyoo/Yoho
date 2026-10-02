@@ -1,0 +1,225 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Calcul de pourcentage | nota.</title>
+<meta name="description" content="Calcule un pourcentage en 2 secondes : X % de Y, quel pourcentage, évolution entre deux valeurs, prix après remise ou augmentation. Gratuit et sans inscription.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/nota.css">
+<style>
+  :root { --accent: #7b8a5c; }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --accent: #a8b886; } }
+  :root[data-theme="dark"] { --accent: #a8b886; }
+  .formula { margin-top: 18px; font-family: var(--mono); font-size: 12.5px; color: var(--ink-faint); background: var(--tint); border-radius: 12px; padding: 12px 14px; text-align: left; overflow-x: auto; white-space: nowrap; }
+  .sign { display: flex; gap: 8px; margin-top: 14px; }
+</style>
+</head>
+<body>
+  <div class="bg"></div>
+  <canvas id="scene" aria-hidden="true"></canvas>
+  <div class="mist"></div>
+  <div class="grain"></div>
+  <div class="topfade"></div>
+
+  <div class="hud tl"><a href="../"><div class="logo">nota.</div><div>Pourcentage / v.01</div></a></div>
+  <div class="hud tr"><div><span class="dot"></span>En ligne</div><div id="hud-mode">Mode : X % de Y</div></div>
+  <div class="hud bl"><div id="hud-coords">X 0.00 · Y 0.00</div><div>Particules : <span id="hud-count">0</span></div></div>
+  <div class="hud br"><div>Scroll pour explorer</div><div id="hud-pct">000%</div></div>
+
+  <main>
+    <section class="hero">
+      <div class="kicker reveal">Remises · Hausses · Évolutions</div>
+      <h1 class="reveal d1">Les pourcentages,<br><em>sans calculette.</em></h1>
+      <p class="reveal d2">Quatre calculs que tout le monde cherche un jour : un pourcentage d'un nombre, la part qu'il représente, une évolution, un prix soldé.</p>
+      <a class="cta reveal d3" href="#outil">Calculer →</a>
+      <div class="scroll-hint">SCROLL</div>
+    </section>
+
+    <section id="outil">
+      <div class="wrap tool">
+        <div class="tool-head">
+          <div class="kicker reveal">Calculateur</div>
+          <h2 class="reveal d1">Choisis ton <em>calcul.</em></h2>
+        </div>
+
+        <div class="panel reveal d1">
+          <div class="tabs" role="tablist" id="tabs"></div>
+          <div class="fields">
+            <div class="field"><label for="a" id="la">Pourcentage</label><input id="a" class="num" inputmode="decimal" autocomplete="off"></div>
+            <div class="field"><label for="b" id="lb">Nombre</label><input id="b" class="num" inputmode="decimal" autocomplete="off"></div>
+          </div>
+          <div class="sign" id="sign" hidden>
+            <button class="chip on" data-sign="-1" type="button">Remise (−)</button>
+            <button class="chip" data-sign="1" type="button">Hausse (+)</button>
+          </div>
+          <p class="hint" id="hint"></p>
+        </div>
+
+        <div class="panel result reveal d2" aria-live="polite">
+          <div class="lbl">Résultat</div>
+          <div class="big" id="out">--</div>
+          <div class="sub" id="sentence">Entre deux nombres</div>
+          <div class="formula" id="formula"></div>
+          <div class="ad" data-ad>Espace publicitaire</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="auto">
+      <div class="wrap prose">
+        <div class="panel reveal">
+          <h2>Comment calculer <em>un pourcentage</em></h2>
+          <h3>Calculer X % d'un nombre</h3>
+          <p>On multiplie le nombre par le pourcentage, puis on divise par 100. Par exemple, 20 % de 85 € font 85 × 20 ÷ 100 = 17 €.</p>
+          <h3>Trouver quel pourcentage représente une valeur</h3>
+          <p>On divise la partie par le total, puis on multiplie par 100. Si tu as eu 14 bonnes réponses sur 20, tu as 14 ÷ 20 × 100 = 70 % de réussite.</p>
+          <h3>Calculer une évolution en pourcentage</h3>
+          <p>On fait (valeur d'arrivée − valeur de départ) ÷ valeur de départ × 100. Un prix qui passe de 50 € à 60 € augmente de 20 %. S'il redescend de 60 € à 50 €, il baisse de 16,67 % et pas de 20 %, parce que le point de départ a changé.</p>
+          <h3>Appliquer une remise ou une hausse</h3>
+          <ul>
+            <li>Remise de 30 % sur 80 € : 80 × (1 − 0,30) = 56 €.</li>
+            <li>Hausse de 5 % sur 1 200 € : 1 200 × (1 + 0,05) = 1 260 €.</li>
+            <li>Deux remises de 20 % à la suite ne font pas 40 % : elles font 36 %, car 0,8 × 0,8 = 0,64.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section class="auto">
+      <div class="wrap">
+        <div class="kicker reveal">Autres outils</div>
+        <div class="others reveal d1">
+          <a class="tile" href="../moyenne/"><div class="n">École</div><h3>Moyenne</h3><p>Trimestre, brevet et bac, avec mention et points manquants.</p></a>
+          <a class="tile here" href="../pourcentage/"><div class="n">Calcul</div><h3>Pourcentage</h3><p>Remises, hausses, évolutions et parts.</p></a>
+          <a class="tile" href="../salaire/"><div class="n">Travail</div><h3>Salaire brut / net</h3><p>Convertis ton salaire horaire, mensuel ou annuel.</p></a>
+          <a class="tile" href="../pseudo/"><div class="n">Jeux</div><h3>Pseudo</h3><p>Des pseudos uniques pour tes jeux et réseaux.</p></a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer><a href="../">nota.</a> · Les calculs se font sur ton appareil · <a href="../confidentialite/">Confidentialité</a></footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="../assets/scene.js"></script>
+<script src="../assets/ads.js"></script>
+<script>
+const num = v => { const n = parseFloat(String(v).replace(/\s/g, "").replace(",", ".")); return isFinite(n) ? n : NaN; };
+const fmt = (n, d = 2) => n.toLocaleString("fr-FR", { maximumFractionDigits: d });
+const $ = s => document.querySelector(s);
+
+const MODES = {
+  part: {
+    tab: "X % de Y", la: "Pourcentage (%)", lb: "Nombre", ex: ["20", "85"],
+    hint: "Exemple : combien font 20 % de 85 € ?",
+    calc: (a, b) => ({ v: b * a / 100, s: `${fmt(a)} % de ${fmt(b)}`, f: `${fmt(b)} × ${fmt(a)} ÷ 100 = ${fmt(b * a / 100)}` }),
+  },
+  ratio: {
+    tab: "Quel %", la: "Valeur", lb: "Total", ex: ["14", "20"],
+    hint: "Exemple : 14 bonnes réponses sur 20, ça fait quel pourcentage ?",
+    calc: (a, b) => b === 0 ? null : ({ v: a / b * 100, unit: " %", s: `${fmt(a)} sur ${fmt(b)}`, f: `${fmt(a)} ÷ ${fmt(b)} × 100 = ${fmt(a / b * 100)} %` }),
+  },
+  evol: {
+    tab: "Évolution", la: "Valeur de départ", lb: "Valeur d'arrivée", ex: ["50", "60"],
+    hint: "Exemple : un prix passe de 50 € à 60 €. De combien a-t-il augmenté ?",
+    calc: (a, b) => {
+      if (a === 0) return null;
+      const v = (b - a) / a * 100;
+      return { v, unit: " %", signed: true, s: v >= 0 ? "de hausse" : "de baisse", f: `(${fmt(b)} − ${fmt(a)}) ÷ ${fmt(a)} × 100 = ${fmt(v)} %` };
+    },
+  },
+  prix: {
+    tab: "Remise / hausse", la: "Prix de départ", lb: "Pourcentage (%)", ex: ["80", "30"], sign: true,
+    hint: "Exemple : un article à 80 € soldé à −30 %.",
+    calc: (a, b, sg) => {
+      const v = a * (1 + sg * b / 100);
+      return { v, s: sg < 0 ? `après −${fmt(b)} %, tu économises ${fmt(a - v)}` : `après +${fmt(b)} %, soit ${fmt(v - a)} de plus`, f: `${fmt(a)} × (1 ${sg < 0 ? "−" : "+"} ${fmt(b)} ÷ 100) = ${fmt(v)}` };
+    },
+  },
+};
+
+let mode = "part", sign = -1, shown = 0, raf = 0, last = null;
+const scene = NotaScene({ shapes: [percentGlyph, donut, NotaShapes.ring] });
+NotaReveal();
+
+function setMode(m, keep) {
+  mode = m;
+  const M = MODES[m];
+  $("#tabs").querySelectorAll("button").forEach(b => b.classList.toggle("on", b.dataset.m === m));
+  $("#la").textContent = M.la; $("#lb").textContent = M.lb;
+  if (!keep) { $("#a").value = M.ex[0]; $("#b").value = M.ex[1]; }
+  $("#sign").hidden = !M.sign;
+  $("#hint").textContent = M.hint;
+  $("#hud-mode").textContent = "Mode : " + M.tab;
+  compute();
+}
+
+function compute() {
+  const a = num($("#a").value), b = num($("#b").value);
+  $("#a").classList.toggle("bad", $("#a").value !== "" && isNaN(a));
+  $("#b").classList.toggle("bad", $("#b").value !== "" && isNaN(b));
+  const r = isNaN(a) || isNaN(b) ? null : MODES[mode].calc(a, b, sign);
+  if (!r || !isFinite(r.v)) {
+    $("#out").textContent = "--"; $("#sentence").textContent = "Entre deux nombres"; $("#formula").textContent = "Division par zéro impossible : change la valeur de départ ou le total.";
+    if (isNaN(a) || isNaN(b)) $("#formula").textContent = "";
+    return;
+  }
+  $("#sentence").textContent = r.s;
+  $("#formula").textContent = r.f;
+  animate(r.v, r.unit || "", r.signed);
+  if (last === null || Math.abs(r.v - last) > 1e-9) scene.pulse(0.5, Math.min(1, Math.abs(r.v) / 100));
+  last = r.v;
+}
+
+function animate(target, unit, signed) {
+  cancelAnimationFrame(raf);
+  const from = shown, t0 = performance.now();
+  const step = t => {
+    const k = Math.min(1, (t - t0) / 500), e = 1 - Math.pow(1 - k, 3);
+    shown = from + (target - from) * e;
+    $("#out").innerHTML = (signed && shown > 0 ? "+" : "") + fmt(shown) + (unit ? `<small>${unit}</small>` : "");
+    if (k < 1) raf = requestAnimationFrame(step);
+  };
+  raf = requestAnimationFrame(step);
+}
+
+for (const m in MODES) {
+  const b = document.createElement("button");
+  b.type = "button"; b.dataset.m = m; b.textContent = MODES[m].tab; b.setAttribute("role", "tab");
+  b.onclick = () => setMode(m);
+  $("#tabs").appendChild(b);
+}
+$("#a").oninput = $("#b").oninput = compute;
+document.querySelectorAll("#sign .chip").forEach(c => c.onclick = () => {
+  sign = +c.dataset.sign;
+  document.querySelectorAll("#sign .chip").forEach(x => x.classList.toggle("on", x === c));
+  compute();
+});
+setMode("part");
+
+/* Formes 3D : le signe %, puis un graphique en anneau avec une part sortie */
+function percentGlyph(i, rnd, g) {
+  const k = i % 10;
+  if (k < 4) { // barre oblique
+    const t = rnd(-1, 1);
+    return [t * 1.25 + g() * 0.08, t * 1.9 + g() * 0.08, g() * 0.12];
+  }
+  const c = k < 7 ? [-1.05, 1.05] : [1.05, -1.05];
+  const a = rnd(0, Math.PI * 2), b = rnd(0, Math.PI * 2), R = 0.62, r = 0.13;
+  return [c[0] + (R + r * Math.cos(b)) * Math.cos(a), c[1] + (R + r * Math.cos(b)) * Math.sin(a), r * Math.sin(b) * 1.4];
+}
+function donut(i, rnd, g) {
+  const a = rnd(0, Math.PI * 2), b = rnd(0, Math.PI * 2), R = 1.75, r = 0.42;
+  const out = a < Math.PI * 2 * 0.3 ? 0.35 : 0; // part de 30 % sortie
+  const mid = Math.PI * 0.3;
+  let x = (R + r * Math.cos(b)) * Math.cos(a) + Math.cos(mid) * out;
+  let z = (R + r * Math.cos(b)) * Math.sin(a) + Math.sin(mid) * out;
+  let y = r * Math.sin(b) + (out ? 0.15 : 0);
+  return NotaShapes.tilt([x, y, z], 0.9);
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,264 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Générateur de pseudo | nota.</title>
+<meta name="description" content="Trouve un pseudo unique pour Fortnite, Minecraft, Valorant, TikTok ou Instagram. Styles gamer, mignon, dark ou drôle, avec ton prénom si tu veux. Gratuit.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/nota.css">
+<style>
+  :root { --accent: #6f6a93; }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --accent: #a7a1d4; } }
+  :root[data-theme="dark"] { --accent: #a7a1d4; }
+  .group { display: flex; flex-direction: column; gap: 8px; }
+  .opts { display: grid; gap: 18px; }
+  .big.nick { font-size: clamp(40px, 6vw, 72px); min-height: 1.1em; word-break: break-word; }
+  .list { margin-top: 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .list button {
+    text-align: left; border: 1px solid var(--glass-line); background: var(--field); color: var(--ink); border-radius: 12px;
+    padding: 11px 12px; font-family: var(--mono); font-size: 13px; cursor: pointer; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .list button:hover, .list button.on { border-color: var(--accent); }
+  .actions { margin-top: 16px; display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+  .actions .cta { margin-top: 0; }
+  .toast { margin-top: 10px; min-height: 20px; font-size: 13px; color: var(--accent); }
+  @media (max-width: 420px) { .list { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+  <div class="bg"></div>
+  <canvas id="scene" aria-hidden="true"></canvas>
+  <div class="mist"></div>
+  <div class="grain"></div>
+  <div class="topfade"></div>
+
+  <div class="hud tl"><a href="../"><div class="logo">nota.</div><div>Pseudo / v.01</div></a></div>
+  <div class="hud tr"><div><span class="dot"></span>En ligne</div><div id="hud-mode">Style : gamer</div></div>
+  <div class="hud bl"><div id="hud-coords">X 0.00 · Y 0.00</div><div>Particules : <span id="hud-count">0</span></div></div>
+  <div class="hud br"><div>Scroll pour explorer</div><div id="hud-pct">000%</div></div>
+
+  <main>
+    <section class="hero">
+      <div class="kicker reveal">Fortnite · Minecraft · Valorant · TikTok</div>
+      <h1 class="reveal d1">Un pseudo<br><em>qui claque.</em></h1>
+      <p class="reveal d2">Choisis un style, ajoute ton prénom si tu veux, et tire autant de pseudos que tu veux. Un clic pour copier.</p>
+      <a class="cta reveal d3" href="#outil">Générer un pseudo →</a>
+      <div class="scroll-hint">SCROLL</div>
+    </section>
+
+    <section id="outil">
+      <div class="wrap tool">
+        <div class="tool-head">
+          <div class="kicker reveal">Générateur</div>
+          <h2 class="reveal d1">Lance <em>les dés.</em></h2>
+        </div>
+
+        <div class="panel reveal d1">
+          <div class="opts">
+            <div class="group"><span class="lbl">Style</span>
+              <div class="chips" id="styles">
+                <button type="button" class="chip on" data-s="gamer">Gamer</button>
+                <button type="button" class="chip" data-s="dark">Dark</button>
+                <button type="button" class="chip" data-s="mignon">Mignon</button>
+                <button type="button" class="chip" data-s="drole">Drôle</button>
+              </div>
+            </div>
+            <div class="field"><label for="word">Ton prénom ou un mot (facultatif)</label><input id="word" maxlength="16" placeholder="Ex. : Yanis" autocomplete="off"></div>
+            <div class="group"><span class="lbl">Options</span>
+              <div class="chips" id="opts">
+                <button type="button" class="chip" data-o="digits">Chiffres</button>
+                <button type="button" class="chip" data-o="deco">xX_déco_Xx</button>
+                <button type="button" class="chip" data-o="under">Tiret_bas</button>
+                <button type="button" class="chip" data-o="leet">L33t</button>
+              </div>
+            </div>
+            <div class="field"><label for="max">Longueur max (caractères)</label>
+              <select id="max"><option value="12">12 · court</option><option value="16" selected>16 · Fortnite, TikTok</option><option value="24">24 · long</option></select>
+            </div>
+          </div>
+          <p class="hint">Vérifie toujours qu'un pseudo est libre sur le jeu ou le réseau avant de t'attacher à lui.</p>
+        </div>
+
+        <div class="panel result reveal d2" aria-live="polite">
+          <div class="lbl">Ton pseudo</div>
+          <div class="big nick" id="out">--</div>
+          <div class="actions">
+            <button type="button" class="cta" id="copy">Copier</button>
+            <button type="button" class="cta" id="gen">Nouveaux pseudos ↻</button>
+          </div>
+          <div class="toast" id="toast"></div>
+          <div class="list" id="list"></div>
+          <div class="ad" data-ad>Espace publicitaire</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="auto">
+      <div class="wrap prose">
+        <div class="panel reveal">
+          <h2>Trouver <em>le bon pseudo</em></h2>
+          <h3>Les règles des principales plateformes</h3>
+          <ul>
+            <li><strong>Fortnite (Epic Games)</strong> : de 3 à 16 caractères.</li>
+            <li><strong>Minecraft</strong> : de 3 à 16 caractères, lettres, chiffres et tiret bas uniquement.</li>
+            <li><strong>TikTok et Instagram</strong> : lettres, chiffres, points et tirets bas, sans espace.</li>
+            <li><strong>Valorant (Riot ID)</strong> : de 3 à 16 caractères, suivis d'un tag après le #.</li>
+          </ul>
+          <h3>Quelques conseils</h3>
+          <ul>
+            <li>Choisis un pseudo facile à prononcer : tes potes doivent pouvoir le dire en vocal.</li>
+            <li>Évite ton nom de famille, ta date de naissance ou ta ville : ce sont des infos personnelles.</li>
+            <li>Garde le même pseudo partout : c'est plus simple pour qu'on te retrouve.</li>
+            <li>Si ton pseudo est déjà pris, ajoute un chiffre ou un tiret bas, ou relance le générateur.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section class="auto">
+      <div class="wrap">
+        <div class="kicker reveal">Autres outils</div>
+        <div class="others reveal d1">
+          <a class="tile" href="../moyenne/"><div class="n">École</div><h3>Moyenne</h3><p>Trimestre, brevet et bac, avec mention et points manquants.</p></a>
+          <a class="tile" href="../pourcentage/"><div class="n">Calcul</div><h3>Pourcentage</h3><p>Remises, hausses, évolutions et parts.</p></a>
+          <a class="tile" href="../salaire/"><div class="n">Travail</div><h3>Salaire brut / net</h3><p>Convertis ton salaire horaire, mensuel ou annuel.</p></a>
+          <a class="tile here" href="../pseudo/"><div class="n">Jeux</div><h3>Pseudo</h3><p>Des pseudos uniques pour tes jeux et réseaux.</p></a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer><a href="../">nota.</a> · Les pseudos sont générés sur ton appareil · <a href="../confidentialite/">Confidentialité</a></footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="../assets/scene.js"></script>
+<script src="../assets/ads.js"></script>
+<script>
+const $ = s => document.querySelector(s);
+const pick = a => a[Math.floor(Math.random() * a.length)];
+
+const WORDS = {
+  gamer: {
+    a: ["Shadow", "Dark", "Neo", "Hyper", "Ghost", "Blaze", "Frost", "Toxic", "Nova", "Venom", "Storm", "Pixel", "Night", "Zero", "Turbo", "Lunar", "Rogue", "Cyber", "Iron", "Silent", "Crimson", "Atomic", "Rapid", "Savage"],
+    b: ["Wolf", "Sniper", "Reaper", "Fox", "Viper", "Hunter", "Phoenix", "Dragon", "Ninja", "Raven", "Titan", "Knight", "Falcon", "Specter", "Blade", "Cobra", "Lynx", "Shark", "Hawk", "Rider", "Striker", "Wraith"],
+  },
+  dark: {
+    a: ["Noct", "Void", "Abyss", "Grim", "Ash", "Hex", "Morb", "Vex", "Kaos", "Nyx", "Mor", "Sombr", "Necr", "Umbr", "Vant", "Draek"],
+    b: ["ira", "us", "ex", "oth", "arion", "is", "el", "ar", "ion", "yr", "ael", "on", "azar", "eth"],
+    join: true,
+  },
+  mignon: {
+    a: ["Mochi", "Bubble", "Peachy", "Cookie", "Cloud", "Honey", "Kitty", "Bunny", "Sunny", "Choco", "Pompom", "Kiwi", "Momo", "Cherry", "Sugar", "Petal"],
+    b: ["Pop", "Bear", "Star", "Moon", "Puff", "Bee", "Berry", "Love", "Dream", "Bun", "Paws", "Pie"],
+  },
+  drole: {
+    a: ["Croissant", "Fromage", "Cornichon", "Poulet", "Saucisson", "Escargot", "Camembert", "Kebab", "Tacos", "Panda", "Hamster", "Pigeon", "Raton", "Radis", "Flan", "Yaourt"],
+    b: ["Furieux", "Cosmique", "Turbo", "Légendaire", "Masqué", "Sauvage", "Royal", "Galactique", "Mystique", "Volant", "Endormi", "Atomique", "Fou", "Suprême"],
+  },
+};
+const LEET = { a: "4", e: "3", i: "1", o: "0", s: "5", t: "7" };
+
+let style = "gamer", current = "", opts = new Set();
+let scene = { pulse() {} };
+NotaReveal();
+
+function strip(s) { return s.normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^A-Za-z0-9]/g, ""); }
+function cap(s) { return s.charAt(0).toUpperCase() + s.slice(1).toLowerCase(); }
+
+function one() {
+  const W = WORDS[style], word = strip($("#word").value);
+  let parts = [pick(W.a), pick(W.b)];
+  if (word) parts[Math.random() < 0.5 ? 0 : 1] = cap(word);
+  let n = W.join && !word ? parts[0] + parts[1].toLowerCase() : parts.join(opts.has("under") ? "_" : "");
+  n = strip(n.replace(/_/g, "UNDERSCORE")).replace(/UNDERSCORE/g, "_");
+  if (opts.has("leet")) n = n.replace(/[aeiost]/g, c => Math.random() < 0.6 ? LEET[c] : c);
+  if (opts.has("digits")) n += pick(["7", "13", "23", "42", "69", "77", "99", "404", "777", String(Math.floor(Math.random() * 90) + 10)]);
+  if (opts.has("deco")) n = "xX_" + n + "_Xx";
+  return n;
+}
+
+function generate() {
+  const max = +$("#max").value, seen = new Set();
+  let guard = 0;
+  while (seen.size < 12 && guard++ < 400) {
+    const n = one();
+    if (n.length >= 3 && n.length <= max) seen.add(n);
+  }
+  const list = [...seen];
+  $("#list").innerHTML = "";
+  list.forEach(n => {
+    const b = document.createElement("button");
+    b.type = "button"; b.textContent = n;
+    b.onclick = () => select(n);
+    $("#list").appendChild(b);
+  });
+  if (list.length) select(list[0]);
+  else { $("#out").textContent = "--"; $("#toast").textContent = "Aucun pseudo assez court : augmente la longueur max ou raccourcis ton mot."; }
+  scene.pulse(0.7, Math.random());
+}
+
+function select(n) {
+  current = n;
+  $("#out").textContent = n;
+  $("#toast").textContent = "";
+  $("#list").querySelectorAll("button").forEach(b => b.classList.toggle("on", b.textContent === n));
+}
+
+$("#copy").onclick = async () => {
+  if (!current) return;
+  try { await navigator.clipboard.writeText(current); $("#toast").textContent = `« ${current} » copié.`; }
+  catch (e) {
+    const r = document.createRange(); r.selectNodeContents($("#out"));
+    const sel = getSelection(); sel.removeAllRanges(); sel.addRange(r);
+    $("#toast").textContent = "Pseudo sélectionné : fais Copier.";
+  }
+};
+$("#gen").onclick = generate;
+document.querySelectorAll("#styles .chip").forEach(c => c.onclick = () => {
+  style = c.dataset.s;
+  document.querySelectorAll("#styles .chip").forEach(x => x.classList.toggle("on", x === c));
+  $("#hud-mode").textContent = "Style : " + c.textContent.toLowerCase();
+  generate();
+});
+document.querySelectorAll("#opts .chip").forEach(c => c.onclick = () => {
+  const o = c.dataset.o;
+  opts.has(o) ? opts.delete(o) : opts.add(o);
+  c.classList.toggle("on", opts.has(o));
+  generate();
+});
+let wt;
+$("#word").oninput = () => { clearTimeout(wt); wt = setTimeout(generate, 250); };
+$("#max").onchange = generate;
+
+/* Formes 3D : un dé à 20 faces, puis une grille de cubes */
+const PHI = (1 + Math.sqrt(5)) / 2;
+const V = [[-1, PHI, 0], [1, PHI, 0], [-1, -PHI, 0], [1, -PHI, 0], [0, -1, PHI], [0, 1, PHI], [0, -1, -PHI], [0, 1, -PHI], [PHI, 0, -1], [PHI, 0, 1], [-PHI, 0, -1], [-PHI, 0, 1]];
+const E = [];
+for (let i = 0; i < 12; i++) for (let j = i + 1; j < 12; j++) {
+  const d = Math.hypot(V[i][0] - V[j][0], V[i][1] - V[j][1], V[i][2] - V[j][2]);
+  if (Math.abs(d - 2) < 0.01) E.push([i, j]);
+}
+function d20(i, rnd, g) {
+  const s = 1.1;
+  if (i % 4 === 0) { // poussière sur la surface
+    const u = rnd(-1, 1), a = rnd(0, Math.PI * 2), q = Math.sqrt(1 - u * u), r = 1.9 * s * 0.92;
+    return [Math.cos(a) * q * r, u * r, Math.sin(a) * q * r];
+  }
+  const [p, q] = E[i % E.length].map(k => V[k]), t = Math.random();
+  return [0, 1, 2].map(k => (p[k] + (q[k] - p[k]) * t) * s + g() * 0.04);
+}
+function cubeGrid(i, rnd, g) {
+  const n = 3, k = i % (n * n * n), cx = (k % n) - 1, cy = (Math.floor(k / n) % n) - 1, cz = Math.floor(k / (n * n)) - 1;
+  const w = 0.32, f = Math.floor(Math.random() * 6), u = rnd(-w, w), v = rnd(-w, w);
+  const p = [[w, u, v], [-w, u, v], [u, w, v], [u, -w, v], [u, v, w], [u, v, -w]][f];
+  return NotaShapes.tilt(NotaShapes.spinY([cx * 1.05 + p[0], cy * 1.05 + p[1], cz * 1.05 + p[2]], 0.6), 0.4);
+}
+// La scène est créée après la définition des formes ci-dessus
+scene = NotaScene({ shapes: [d20, cubeGrid, NotaShapes.ring] });
+generate();
+</script>
+</body>
+</html>
